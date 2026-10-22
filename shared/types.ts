@@ -1,0 +1,87 @@
+// Types shared by the server and the web app. Money is always whole cents.
+
+export const STATUSES = [
+  'sourced',
+  'prepped',
+  'photographed',
+  'drafted',
+  'listed',
+  'sold',
+  'kept',
+  'donated',
+] as const;
+export type Status = (typeof STATUSES)[number];
+
+export const PHOTO_KINDS = ['front', 'back', 'tag', 'flaw', 'modelled', 'other'] as const;
+export type PhotoKind = (typeof PHOTO_KINDS)[number];
+
+export type ShippingPaidBy = 'buyer' | 'me';
+
+export interface Item {
+  id: number;
+  title: string;
+  brand: string | null;
+  category: string | null;
+  size: string | null;
+  condition: number | null; // 1–5
+  tags: string[];
+  source: string | null;
+  acquired_on: string | null; // YYYY-MM-DD
+  retail_cents: number | null;
+  cost_cents: number | null;
+  list_cents: number | null;
+  floor_cents: number | null;
+  sold_cents: number | null;
+  shipping_cents: number | null;
+  shipping_paid_by: ShippingPaidBy;
+  boosted: boolean;
+  status: Status;
+  rating: number | null; // 1–5, expected sale potential
+  group_id: number | null;
+  description: string | null;
+  depop_url: string | null;
+  notes: string | null;
+  listed_on: string | null;
+  sold_on: string | null;
+  created_at: string;
+  updated_at: string;
+  cover_url: string | null;
+  photo_count: number;
+}
+
+export interface Photo {
+  id: number;
+  item_id: number;
+  filename: string;
+  position: number;
+  is_cover: boolean;
+  kind: PhotoKind;
+  url: string;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  description: string | null;
+  item_count: number;
+}
+
+export interface PriceChange {
+  id: number;
+  item_id: number;
+  changed_on: string;
+  old_cents: number | null;
+  new_cents: number | null;
+}
+
+export interface FeeSettings {
+  processing_pct: number; // e.g. 3.3
+  processing_fixed_cents: number; // e.g. 45
+  boost_pct: number; // e.g. 8
+}
+
+export const DEFAULT_FEES: FeeSettings = {
+  processing_pct: 3.3,
+  processing_fixed_cents: 45,
+  boost_pct: 8,
+};
