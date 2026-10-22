@@ -1,0 +1,8 @@
+node_modules/
+dist/
+# Your inventory, photos and backups stay on your laptop, out of git.
+data/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
