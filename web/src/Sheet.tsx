@@ -50,6 +50,21 @@ const blankItem = (title: string) => ({
 
 const dollarsText = (c: number | null) => (c == null ? '' : (c / 100).toFixed(2));
 
+// "Add item" jumps to the blank row at the bottom of the sheet. When clicked
+// from another page, the sheet does this once it has loaded.
+let focusNewRowOnLoad = false;
+
+export function focusNewRow() {
+  const input = document.getElementById('new-item-title') as HTMLInputElement | null;
+  if (input) {
+    input.scrollIntoView({ block: 'center' });
+    input.focus();
+    return;
+  }
+  focusNewRowOnLoad = true;
+  window.location.hash = '#/';
+}
+
 // Every item on one page as editable rows. Each cell saves when you leave it.
 export function Sheet() {
   const [items, setItems] = useState<Item[] | null>(null);
@@ -68,6 +83,13 @@ export function Sheet() {
       })
       .catch(toast.error);
   }, []);
+
+  useEffect(() => {
+    if (items !== null && focusNewRowOnLoad) {
+      focusNewRowOnLoad = false;
+      focusNewRow();
+    }
+  }, [items]);
 
   async function save(id: number, patch: Partial<Record<string, unknown>>) {
     try {
@@ -172,7 +194,7 @@ export function Sheet() {
       )}
       {items !== null && shown.length === 0 && items.length > 0 && <p className="muted">No items match.</p>}
       <p className="hint">
-        Changes save when you leave a cell. Click a photo square to open the full item page for photos, dates, shipping and the full profit breakdown.
+        Changes save when you leave a cell. "Add item" jumps to the blank row at the bottom. Click a photo square to open the full item page for photos, dates, shipping and the full profit breakdown.
       </p>
       {toast.node}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sheet } from './Sheet';
+import { Sheet, focusNewRow } from './Sheet';
 import { ItemEditor } from './ItemEditor';
 import { Settings } from './Settings';
 
@@ -40,9 +40,9 @@ export function App() {
           <a href="#/settings" className={route.page === 'settings' ? 'active' : ''}>
             Settings
           </a>
-          <a href="#/item/new" className="button primary">
+          <button type="button" className="button primary" onClick={focusNewRow}>
             Add item
-          </a>
+          </button>
         </nav>
       </header>
       <main className="page">
