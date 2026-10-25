@@ -118,6 +118,8 @@ select.cell.status-kept, select.cell.status-donated { color: var(--muted); }
 select.cell.willing-eager { color: var(--accent); font-weight: 600; }
 select.cell.willing-right_price { color: var(--warn); }
 select.cell.willing-unsure, select.cell.willing-none { color: var(--muted); }
+select.cell.in-stores-sold_out, select.cell.in-stores-discontinued { color: var(--accent); font-weight: 600; }
+select.cell.in-stores-none { color: var(--muted); }
 .profit-cell { font-weight: 600; padding-right: 12px !important; }
 .new-row td { background: var(--bg); }
 .new-row .cell { font-weight: 400; }
@@ -205,3 +207,12 @@ fieldset label .button { justify-self: start; margin-top: 4px; }
 .title-score.good { color: var(--accent); border-color: transparent; }
 .title-checks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; font-size: 13px; font-weight: 400; color: var(--muted); }
 .title-checks li.ok { color: var(--accent); }
+
+/* Keep the photo and item name in view when the sheet scrolls sideways. */
+.sheet th:nth-child(-n + 2), .sheet td:nth-child(-n + 2) { position: sticky; background: var(--surface); z-index: 1; }
+.sheet th:nth-child(1), .sheet td:nth-child(1) { left: 0; }
+.sheet th:nth-child(2), .sheet td:nth-child(2) { left: 48px; box-shadow: 1px 0 0 var(--line); }
+.sheet thead th:nth-child(-n + 2) { z-index: 2; }
+.sheet tbody tr:hover td:nth-child(-n + 2) { background: var(--accent-soft); }
+.sheet .new-row td:nth-child(-n + 2) { background: var(--bg); }
+.sheet th:nth-child(1), .sheet td:nth-child(1) { width: 48px; min-width: 48px; max-width: 48px; }

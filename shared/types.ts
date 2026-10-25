@@ -27,6 +27,16 @@ export const WILLINGNESS_LABELS: Record<Willingness, string> = {
   unsure: 'Not sure yet',
 };
 
+// Whether the brand still sells the item new. Sold-out pieces often resell for more.
+export const IN_STORES = ['yes', 'sold_out', 'discontinued', 'vintage'] as const;
+export type InStores = (typeof IN_STORES)[number];
+export const IN_STORES_LABELS: Record<InStores, string> = {
+  yes: 'Still in stores',
+  sold_out: 'Sold out',
+  discontinued: 'Discontinued',
+  vintage: 'Vintage',
+};
+
 export interface Item {
   id: number;
   title: string;
@@ -48,6 +58,7 @@ export interface Item {
   status: Status;
   rating: number | null; // 1–5, expected sale potential
   willingness: Willingness | null;
+  in_stores: InStores | null;
   group_id: number | null;
   description: string | null;
   depop_url: string | null;

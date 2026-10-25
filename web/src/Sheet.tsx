@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { formatCents, parseDollars, profitFor } from '../../shared/profit';
-import { DEFAULT_FEES, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
+import { DEFAULT_FEES, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
 
@@ -42,6 +42,7 @@ const blankItem = (title: string) => ({
   status: 'sourced',
   rating: null,
   willingness: null,
+  in_stores: null,
   group_id: null,
   description: null,
   depop_url: null,
@@ -179,6 +180,7 @@ export function Sheet() {
                 <th>Rating</th>
                 <th>Willing to sell</th>
                 <th>Group</th>
+                <th>In stores?</th>
                 {MONEY_COLUMNS.map((c) => (
                   <th key={c.key} className="num">
                     {c.label}
@@ -301,6 +303,22 @@ function Row({
           ))}
         </select>
       </td>
+      <td>
+        <select
+          id={`in_stores-${item.id}`}
+          aria-label="Still sold in stores"
+          className={`cell in-stores-${item.in_stores ?? 'none'}`}
+          value={item.in_stores ?? ''}
+          onChange={(e) => onSave(item.id, { in_stores: e.target.value || null })}
+        >
+          <option value="">–</option>
+          {IN_STORES.map((v) => (
+            <option key={v} value={v}>
+              {IN_STORES_LABELS[v]}
+            </option>
+          ))}
+        </select>
+      </td>
       {MONEY_COLUMNS.map((c) => (
         <td key={c.key} className="num">
           <MoneyCell item={item} field={c.key} label={c.label} onSave={onSave} onError={onError} />
@@ -418,7 +436,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={13}>
+      <td colSpan={14}>
         <input
           id="new-item-title"
           aria-label="New item"

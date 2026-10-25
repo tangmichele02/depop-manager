@@ -4,6 +4,8 @@ import { formatCents, parseDollars, profitFor } from '../../shared/profit';
 import {
   DEFAULT_FEES,
   PHOTO_KINDS,
+  IN_STORES,
+  IN_STORES_LABELS,
   STATUSES,
   WILLINGNESS,
   WILLINGNESS_LABELS,
@@ -13,6 +15,7 @@ import {
   type Photo,
   type PriceChange,
   type ShippingPaidBy,
+  type InStores,
   type Status,
   type Willingness,
 } from '../../shared/types';
@@ -36,6 +39,7 @@ interface Form {
   status: Status;
   rating: number | null;
   willingness: Willingness | null;
+  in_stores: InStores | null;
   group_id: number | null;
   description: string;
   depop_url: string;
@@ -62,6 +66,7 @@ function toForm(i?: Item): Form {
     status: i?.status ?? 'sourced',
     rating: i?.rating ?? null,
     willingness: i?.willingness ?? null,
+    in_stores: i?.in_stores ?? null,
     group_id: i?.group_id ?? null,
     description: i?.description ?? '',
     depop_url: i?.depop_url ?? '',
@@ -124,6 +129,7 @@ function toBody(f: Form): { body?: Record<string, unknown>; error?: string } {
       status: f.status,
       rating: f.rating,
       willingness: f.willingness,
+      in_stores: f.in_stores,
       group_id: f.group_id,
       description: blank(f.description),
       depop_url: blank(f.depop_url),
@@ -379,6 +385,22 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
               <input id="acquired_on" type="date" value={form.acquired_on} onChange={(e) => set('acquired_on', e.target.value)} />
             </label>
             <MoneyInput field="retail_cents" form={form} onChange={setMoney} />
+            <label>
+              Still sold in stores?
+              <select
+                id="in_stores"
+                value={form.in_stores ?? ''}
+                onChange={(e) => set('in_stores', (e.target.value || null) as InStores | null)}
+              >
+                <option value="">Not sure</option>
+                {IN_STORES.map((v) => (
+                  <option key={v} value={v}>
+                    {IN_STORES_LABELS[v]}
+                  </option>
+                ))}
+              </select>
+              <span className="hint">Sold-out and discontinued pieces can usually be priced higher.</span>
+            </label>
             <MoneyInput field="cost_cents" form={form} onChange={setMoney} />
           </fieldset>
 

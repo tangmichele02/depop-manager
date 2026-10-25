@@ -119,6 +119,16 @@ describe('items', () => {
     expect(bad.statusCode).toBe(400);
   });
 
+  it('stores whether the item is still sold in stores', async () => {
+    const { id, in_stores } = (await app.inject({ method: 'POST', url: '/api/items', payload: ITEM })).json();
+    expect(in_stores).toBeNull();
+    const updated = (await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { in_stores: 'sold_out' } })).json();
+    expect(updated.in_stores).toBe('sold_out');
+    const csv = (await app.inject('/api/export.csv')).body;
+    expect(csv).toContain('Sold out');
+    expect((await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { in_stores: 'gone' } })).statusCode).toBe(400);
+  });
+
   it('returns 404 for a missing item', async () => {
     expect((await app.inject('/api/items/999')).statusCode).toBe(404);
   });
