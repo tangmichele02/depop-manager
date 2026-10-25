@@ -3,6 +3,7 @@ import { api } from './api';
 import { formatCents, parseDollars, profitFor } from '../../shared/profit';
 import { DEFAULT_FEES, STATUSES, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
+import { NamingGuide, TitleScore } from './NamingGuide';
 
 const IN_STOCK: Status[] = ['sourced', 'prepped', 'photographed', 'drafted', 'listed'];
 
@@ -159,6 +160,8 @@ export function Sheet() {
         </div>
       </div>
 
+      <NamingGuide />
+
       {items === null ? (
         <p className="muted">Loading…</p>
       ) : (
@@ -223,7 +226,10 @@ function Row({
         </a>
       </td>
       <td>
-        <TextCell item={item} field="title" label="Item" required className="cell-wide" onSave={onSave} onError={onError} />
+        <div className="title-cell">
+          <TextCell item={item} field="title" label="Item" required className="cell-wide" onSave={onSave} onError={onError} />
+          <TitleScore fields={item} />
+        </div>
       </td>
       {TEXT_COLUMNS.map((c) => (
         <td key={c.key}>
@@ -399,7 +405,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           id="new-item-title"
           aria-label="New item"
           className="cell cell-wide"
-          placeholder="Type a new item and press Enter"
+          placeholder="New item: brand + style + item + detail, then press Enter"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={commit}

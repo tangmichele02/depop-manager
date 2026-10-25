@@ -15,6 +15,8 @@ import {
 } from '../../shared/types';
 import { RatingInput, STATUS_LABELS, useToast } from './shared-ui';
 import { navigate } from './App';
+import { NamingGuide, TitleChecklist } from './NamingGuide';
+import { descriptionTemplate, type ListingFields } from '../../shared/listing';
 
 const MONEY_FIELDS = ['retail_cents', 'cost_cents', 'list_cents', 'floor_cents', 'sold_cents', 'shipping_cents'] as const;
 type MoneyField = (typeof MONEY_FIELDS)[number];
@@ -64,6 +66,21 @@ function toForm(i?: Item): Form {
     shipping_paid_by: i?.shipping_paid_by ?? 'buyer',
     boosted: i?.boosted ?? false,
     money: Object.fromEntries(MONEY_FIELDS.map((f) => [f, dollarsText(i?.[f] ?? null)])) as Record<MoneyField, string>,
+  };
+}
+
+function listingFields(f: Form): ListingFields {
+  const blank = (s: string) => (s.trim() === '' ? null : s.trim());
+  return {
+    title: f.title,
+    brand: blank(f.brand),
+    category: blank(f.category),
+    size: blank(f.size),
+    condition: f.condition,
+    tags: f.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
   };
 }
 
@@ -244,7 +261,14 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
             <legend>The item</legend>
             <label className="wide">
               Title
-              <input id="title" value={form.title} onChange={(e) => set('title', e.target.value)} required />
+              <input
+                id="title"
+                value={form.title}
+                placeholder="Brand + style or era + item + color, fabric or fit"
+                onChange={(e) => set('title', e.target.value)}
+                required
+              />
+              <TitleChecklist fields={listingFields(form)} />
             </label>
             <label>
               Brand
@@ -369,11 +393,23 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
               Description
               <textarea
                 id="description"
-                rows={6}
+                rows={10}
                 value={form.description}
                 onChange={(e) => set('description', e.target.value)}
               />
-              {form.description && <CopyButton text={form.description} />}
+              <span className="row-actions">
+                {form.description ? (
+                  <CopyButton text={form.description} />
+                ) : (
+                  <button
+                    type="button"
+                    className="button small"
+                    onClick={() => set('description', descriptionTemplate(listingFields(form)))}
+                  >
+                    Start from template
+                  </button>
+                )}
+              </span>
             </label>
           </fieldset>
 
@@ -418,6 +454,7 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
         </div>
 
         <aside className="stack">
+          <NamingGuide />
           {isNew ? (
             <div className="panel">
               <h2>Photos</h2>
