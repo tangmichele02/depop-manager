@@ -12,20 +12,6 @@ export const STATUS_LABELS: Record<Status, string> = {
   donated: 'Donated',
 };
 
-export function StatusPill({ status }: { status: Status }) {
-  return <span className={`pill status-${status}`}>{STATUS_LABELS[status]}</span>;
-}
-
-export function Rating({ value }: { value: number | null }) {
-  if (value == null) return <span className="muted">–</span>;
-  return (
-    <span className="rating" aria-label={`Rated ${value} of 5`}>
-      {'★'.repeat(value)}
-      <span className="rating-empty">{'★'.repeat(5 - value)}</span>
-    </span>
-  );
-}
-
 export function RatingInput({
   id,
   value,

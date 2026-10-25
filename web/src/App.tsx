@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Inventory } from './Inventory';
+import { Sheet } from './Sheet';
 import { ItemEditor } from './ItemEditor';
 import { Settings } from './Settings';
 
@@ -35,7 +35,7 @@ export function App() {
         </a>
         <nav>
           <a href="#/" className={route.page === 'inventory' ? 'active' : ''}>
-            Inventory
+            Items
           </a>
           <a href="#/settings" className={route.page === 'settings' ? 'active' : ''}>
             Settings
@@ -46,7 +46,7 @@ export function App() {
         </nav>
       </header>
       <main className="page">
-        {route.page === 'inventory' && <Inventory />}
+        {route.page === 'inventory' && <Sheet />}
         {route.page === 'item' && <ItemEditor key={String(route.id)} id={route.id} />}
         {route.page === 'settings' && <Settings />}
       </main>

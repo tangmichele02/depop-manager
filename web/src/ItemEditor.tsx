@@ -212,7 +212,7 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
     <form className="editor" onSubmit={save}>
       <div className="editor-head">
         <a href="#/" className="back">
-          ← Inventory
+          ← All items
         </a>
         <h1>{isNew ? 'New item' : form.title || 'Untitled item'}</h1>
         <div className="actions">
