@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { DB } from './db.js';
-import { STATUSES, type Item, type PriceChange } from '../shared/types.js';
+import { STATUSES, WILLINGNESS, type Item, type PriceChange } from '../shared/types.js';
 
 const cents = z.number().int().min(0).nullable();
 const score = z.number().int().min(1).max(5).nullable();
@@ -29,6 +29,7 @@ export const itemInput = z.object({
   boosted: z.boolean(),
   status: z.enum(STATUSES),
   rating: score,
+  willingness: z.enum(WILLINGNESS).nullable().default(null),
   group_id: z.number().int().positive().nullable(),
   description: text,
   depop_url: text,

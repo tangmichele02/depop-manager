@@ -5,6 +5,8 @@ import {
   DEFAULT_FEES,
   PHOTO_KINDS,
   STATUSES,
+  WILLINGNESS,
+  WILLINGNESS_LABELS,
   type FeeSettings,
   type Group,
   type Item,
@@ -12,6 +14,7 @@ import {
   type PriceChange,
   type ShippingPaidBy,
   type Status,
+  type Willingness,
 } from '../../shared/types';
 import { RatingInput, STATUS_LABELS, useToast } from './shared-ui';
 import { navigate } from './App';
@@ -32,6 +35,7 @@ interface Form {
   acquired_on: string;
   status: Status;
   rating: number | null;
+  willingness: Willingness | null;
   group_id: number | null;
   description: string;
   depop_url: string;
@@ -57,6 +61,7 @@ function toForm(i?: Item): Form {
     acquired_on: i?.acquired_on ?? '',
     status: i?.status ?? 'sourced',
     rating: i?.rating ?? null,
+    willingness: i?.willingness ?? null,
     group_id: i?.group_id ?? null,
     description: i?.description ?? '',
     depop_url: i?.depop_url ?? '',
@@ -118,6 +123,7 @@ function toBody(f: Form): { body?: Record<string, unknown>; error?: string } {
       acquired_on: blank(f.acquired_on),
       status: f.status,
       rating: f.rating,
+      willingness: f.willingness,
       group_id: f.group_id,
       description: blank(f.description),
       depop_url: blank(f.depop_url),
@@ -315,10 +321,25 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
           </fieldset>
 
           <fieldset>
-            <legend>Rating and group</legend>
+            <legend>Rating, willingness and group</legend>
             <label>
               How well you expect it to sell
               <RatingInput id="rating" value={form.rating} onChange={(v) => set('rating', v)} />
+            </label>
+            <label>
+              How willing you are to sell it
+              <select
+                id="willingness"
+                value={form.willingness ?? ''}
+                onChange={(e) => set('willingness', (e.target.value || null) as Willingness | null)}
+              >
+                <option value="">Not set</option>
+                {WILLINGNESS.map((w) => (
+                  <option key={w} value={w}>
+                    {WILLINGNESS_LABELS[w]}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               Group

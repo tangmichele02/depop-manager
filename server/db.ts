@@ -66,6 +66,7 @@ const MIGRATIONS: string[] = [
     value TEXT NOT NULL
   );
   `,
+  `ALTER TABLE items ADD COLUMN willingness TEXT CHECK (willingness IN ('eager', 'happy', 'right_price', 'unsure'));`,
 ];
 
 export function openDb(file: string): DB {

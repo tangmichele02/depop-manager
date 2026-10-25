@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { formatCents, parseDollars, profitFor } from '../../shared/profit';
-import { DEFAULT_FEES, STATUSES, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
+import { DEFAULT_FEES, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
 
@@ -41,6 +41,7 @@ const blankItem = (title: string) => ({
   boosted: false,
   status: 'sourced',
   rating: null,
+  willingness: null,
   group_id: null,
   description: null,
   depop_url: null,
@@ -176,6 +177,7 @@ export function Sheet() {
                 ))}
                 <th>Status</th>
                 <th>Rating</th>
+                <th>Willing to sell</th>
                 <th>Group</th>
                 {MONEY_COLUMNS.map((c) => (
                   <th key={c.key} className="num">
@@ -263,6 +265,22 @@ function Row({
           {[5, 4, 3, 2, 1].map((n) => (
             <option key={n} value={n}>
               {'★'.repeat(n)}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td>
+        <select
+          id={`willingness-${item.id}`}
+          aria-label="Willing to sell"
+          className={`cell willing-${item.willingness ?? 'none'}`}
+          value={item.willingness ?? ''}
+          onChange={(e) => onSave(item.id, { willingness: e.target.value || null })}
+        >
+          <option value="">–</option>
+          {WILLINGNESS.map((w) => (
+            <option key={w} value={w}>
+              {WILLINGNESS_LABELS[w]}
             </option>
           ))}
         </select>
@@ -400,7 +418,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={12}>
+      <td colSpan={13}>
         <input
           id="new-item-title"
           aria-label="New item"

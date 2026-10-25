@@ -115,6 +115,9 @@ select.cell.status-sold { color: var(--accent); font-weight: 700; }
 select.cell.status-drafted { color: var(--warn); }
 select.cell.status-kept, select.cell.status-donated { color: var(--muted); }
 .rating-cell { color: var(--star); }
+select.cell.willing-eager { color: var(--accent); font-weight: 600; }
+select.cell.willing-right_price { color: var(--warn); }
+select.cell.willing-unsure, select.cell.willing-none { color: var(--muted); }
 .profit-cell { font-weight: 600; padding-right: 12px !important; }
 .new-row td { background: var(--bg); }
 .new-row .cell { font-weight: 400; }

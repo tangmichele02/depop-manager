@@ -17,6 +17,16 @@ export type PhotoKind = (typeof PHOTO_KINDS)[number];
 
 export type ShippingPaidBy = 'buyer' | 'me';
 
+// How ready you are to part with an item, separate from how well it will sell.
+export const WILLINGNESS = ['eager', 'happy', 'right_price', 'unsure'] as const;
+export type Willingness = (typeof WILLINGNESS)[number];
+export const WILLINGNESS_LABELS: Record<Willingness, string> = {
+  eager: 'Eager to sell',
+  happy: 'Happy to sell',
+  right_price: 'Only at my price',
+  unsure: 'Not sure yet',
+};
+
 export interface Item {
   id: number;
   title: string;
@@ -37,6 +47,7 @@ export interface Item {
   boosted: boolean;
   status: Status;
   rating: number | null; // 1–5, expected sale potential
+  willingness: Willingness | null;
   group_id: number | null;
   description: string | null;
   depop_url: string | null;

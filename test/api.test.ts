@@ -106,6 +106,19 @@ describe('items', () => {
     expect(price_history).toMatchObject([{ old_cents: 3800, new_cents: 3500 }]);
   });
 
+  it('stores how willing you are to sell, and rejects unknown values', async () => {
+    const { id, willingness } = (await app.inject({ method: 'POST', url: '/api/items', payload: ITEM })).json();
+    expect(willingness).toBeNull();
+    const updated = (
+      await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { willingness: 'right_price' } })
+    ).json();
+    expect(updated.willingness).toBe('right_price');
+    const untouched = (await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { rating: 2 } })).json();
+    expect(untouched.willingness).toBe('right_price');
+    const bad = await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { willingness: 'maybe' } });
+    expect(bad.statusCode).toBe(400);
+  });
+
   it('returns 404 for a missing item', async () => {
     expect((await app.inject('/api/items/999')).statusCode).toBe(404);
   });
