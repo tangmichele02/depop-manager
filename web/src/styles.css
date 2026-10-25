@@ -119,7 +119,7 @@ select.cell.willing-eager { color: var(--accent); font-weight: 600; }
 select.cell.willing-right_price { color: var(--warn); }
 select.cell.willing-unsure, select.cell.willing-none { color: var(--muted); }
 select.cell.in-stores-sold_out, select.cell.in-stores-discontinued { color: var(--accent); font-weight: 600; }
-select.cell.in-stores-none { color: var(--muted); }
+select.cell.in-stores-none, select.cell.cell-empty { color: var(--muted); }
 .profit-cell { font-weight: 600; padding-right: 12px !important; }
 .new-row td { background: var(--bg); }
 .new-row .cell { font-weight: 400; }

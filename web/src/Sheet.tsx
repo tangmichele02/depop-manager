@@ -5,6 +5,14 @@ import { DEFAULT_FEES, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLI
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
 
+const CONDITIONS = [
+  { value: 5, label: 'New with tags' },
+  { value: 4, label: 'Like new' },
+  { value: 3, label: 'Good' },
+  { value: 2, label: 'Fair' },
+  { value: 1, label: 'Flawed' },
+];
+
 const IN_STOCK: Status[] = ['sourced', 'prepped', 'photographed', 'drafted', 'listed'];
 
 const MONEY_COLUMNS = [
@@ -176,6 +184,7 @@ export function Sheet() {
                 {TEXT_COLUMNS.map((c) => (
                   <th key={c.key}>{c.label}</th>
                 ))}
+                <th>Condition</th>
                 <th>Status</th>
                 <th>Rating</th>
                 <th>Willing to sell</th>
@@ -240,6 +249,22 @@ function Row({
           <TextCell item={item} field={c.key} label={c.label} className={c.className} onSave={onSave} onError={onError} />
         </td>
       ))}
+      <td>
+        <select
+          id={`condition-${item.id}`}
+          aria-label="Condition"
+          className={`cell ${item.condition == null ? 'cell-empty' : ''}`}
+          value={item.condition ?? ''}
+          onChange={(e) => onSave(item.id, { condition: e.target.value ? Number(e.target.value) : null })}
+        >
+          <option value="">–</option>
+          {CONDITIONS.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </td>
       <td>
         <select
           id={`status-${item.id}`}
@@ -436,7 +461,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={14}>
+      <td colSpan={15}>
         <input
           id="new-item-title"
           aria-label="New item"
