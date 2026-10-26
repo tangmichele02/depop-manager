@@ -119,6 +119,18 @@ describe('items', () => {
     expect(bad.statusCode).toBe(400);
   });
 
+  it('stores a per-item tax rate and uses the default otherwise', async () => {
+    const { id, tax_pct } = (await app.inject({ method: 'POST', url: '/api/items', payload: ITEM })).json();
+    expect(tax_pct).toBeNull();
+    const csv1 = (await app.inject('/api/export.csv')).body.split('\r\n');
+    const cols = csv1[0].split(',');
+    expect(csv1[1].split(',')[cols.indexOf('cost_with_tax')]).toBe('6.39');
+    await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { tax_pct: 0 } });
+    const csv2 = (await app.inject('/api/export.csv')).body.split('\r\n');
+    expect(csv2[1].split(',')[cols.indexOf('cost_with_tax')]).toBe('6.00');
+    expect((await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { tax_pct: 40 } })).statusCode).toBe(400);
+  });
+
   it('stores whether the item is still sold in stores', async () => {
     const { id, in_stores } = (await app.inject({ method: 'POST', url: '/api/items', payload: ITEM })).json();
     expect(in_stores).toBeNull();
@@ -192,7 +204,7 @@ describe('groups, fees, export and backup', () => {
 
   it('saves fees and uses them in the CSV profit column', async () => {
     await app.inject({ method: 'POST', url: '/api/items', payload: { ...ITEM, status: 'sold', sold_cents: 3200, shipping_cents: 749 } });
-    await app.inject({ method: 'PUT', url: '/api/settings/fees', payload: { processing_pct: 0, processing_fixed_cents: 0, boost_pct: 8 } });
+    await app.inject({ method: 'PUT', url: '/api/settings/fees', payload: { processing_pct: 0, processing_fixed_cents: 0, boost_pct: 8, sales_tax_pct: 0 } });
     const csv = (await app.inject('/api/export.csv')).body;
     const [header, row] = csv.trim().split('\r\n');
     const cols = header.split(',');

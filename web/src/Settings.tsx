@@ -131,6 +131,7 @@ function FeesPanel({ toast }: { toast: Toast }) {
   const [pct, setPct] = useState('');
   const [fixed, setFixed] = useState('');
   const [boost, setBoost] = useState('');
+  const [tax, setTax] = useState('');
 
   useEffect(() => {
     api
@@ -139,6 +140,7 @@ function FeesPanel({ toast }: { toast: Toast }) {
         setPct(String(f.processing_pct));
         setFixed((f.processing_fixed_cents / 100).toFixed(2));
         setBoost(String(f.boost_pct));
+        setTax(String(f.sales_tax_pct));
       })
       .catch(toast.error);
   }, []);
@@ -148,11 +150,12 @@ function FeesPanel({ toast }: { toast: Toast }) {
     const fixedCents = parseDollars(fixed);
     const p = Number(pct);
     const b = Number(boost);
-    if (fixedCents == null || Number.isNaN(fixedCents) || !Number.isFinite(p) || !Number.isFinite(b)) {
-      return toast.error(new Error('Enter numbers for every fee, like 3.3, 0.45 and 8.'));
+    const t = Number(tax);
+    if (fixedCents == null || Number.isNaN(fixedCents) || !Number.isFinite(p) || !Number.isFinite(b) || tax.trim() === '' || !Number.isFinite(t)) {
+      return toast.error(new Error('Enter numbers for every field, like 3.3, 0.45, 8 and 6.5.'));
     }
     try {
-      await api.saveFees({ processing_pct: p, processing_fixed_cents: fixedCents, boost_pct: b });
+      await api.saveFees({ processing_pct: p, processing_fixed_cents: fixedCents, boost_pct: b, sales_tax_pct: t });
       toast.show('Fees saved');
     } catch (err) {
       toast.error(err);
@@ -161,7 +164,7 @@ function FeesPanel({ toast }: { toast: Toast }) {
 
   return (
     <section className="panel">
-      <h2>Depop fees</h2>
+      <h2>Fees and sales tax</h2>
       <p className="muted">
         Used for every profit figure. Defaults are Depop’s US fees as of mid-2026: no selling fee, payment processing of
         3.3% + $0.45 on item price plus shipping, and 8% on sales from boosted listings. Check Depop’s fee page if
@@ -183,10 +186,19 @@ function FeesPanel({ toast }: { toast: Toast }) {
           Boost fee, percent
           <input id="fee-boost" inputMode="decimal" value={boost} onChange={(e) => setBoost(e.target.value)} />
         </label>
+        <label>
+          Sales tax you pay when buying, percent
+          <input id="fee-tax" inputMode="decimal" value={tax} onChange={(e) => setTax(e.target.value)} />
+        </label>
         <button type="submit" className="button primary">
           Save fees
         </button>
       </form>
+      <p className="hint">
+        Sales tax is added to what you paid for every item unless you set a different rate on that item (use 0 for
+        no tax). The default 6.5% is Washington’s state rate; most WA cities add local tax on top, for example Seattle
+        is about 10.55%, so put in your own area’s rate if you know it.
+      </p>
       <p className="hint">Example: a {formatCents(3200)} sale with {formatCents(749)} shipping pays about {formatCents(Math.round(((3200 + 749) * Number(pct || 0)) / 100) + (parseDollars(fixed) || 0))} in processing.</p>
     </section>
   );

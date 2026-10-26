@@ -235,6 +235,7 @@ export function buildApp(opts: AppOptions) {
         processing_pct: z.number().min(0).max(100),
         processing_fixed_cents: z.number().int().min(0),
         boost_pct: z.number().min(0).max(100),
+        sales_tax_pct: z.number().min(0).max(25),
       })
       .parse(req.body);
     setFees(db, fees);

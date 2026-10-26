@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
-import { formatCents, parseDollars, profitFor } from '../../shared/profit';
+import { formatCents, paidWithTax, parseDollars, profitFor } from '../../shared/profit';
 import { DEFAULT_FEES, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
@@ -52,6 +52,7 @@ const blankItem = (title: string) => ({
   rating: null,
   willingness: null,
   in_stores: null,
+  tax_pct: null,
   group_id: null,
   description: null,
   depop_url: null,
@@ -192,9 +193,17 @@ export function Sheet() {
                 <th>Group</th>
                 <th>In stores?</th>
                 {MONEY_COLUMNS.map((c) => (
-                  <th key={c.key} className="num">
-                    {c.label}
-                  </th>
+                  <Fragment key={c.key}>
+                    <th className="num">{c.label}</th>
+                    {c.key === 'cost_cents' && (
+                      <>
+                        <th className="num" title={`Blank uses the default ${fees.sales_tax_pct}% from Settings`}>
+                          Tax %
+                        </th>
+                        <th className="num">Paid + tax</th>
+                      </>
+                    )}
+                  </Fragment>
                 ))}
                 <th className="num">Profit</th>
                 <th>Notes</th>
@@ -346,9 +355,19 @@ function Row({
         </select>
       </td>
       {MONEY_COLUMNS.map((c) => (
-        <td key={c.key} className="num">
-          <MoneyCell item={item} field={c.key} label={c.label} onSave={onSave} onError={onError} />
-        </td>
+        <Fragment key={c.key}>
+          <td className="num">
+            <MoneyCell item={item} field={c.key} label={c.label} onSave={onSave} onError={onError} />
+          </td>
+          {c.key === 'cost_cents' && (
+            <>
+              <td className="num">
+                <TaxCell item={item} fees={fees} onSave={onSave} onError={onError} />
+              </td>
+              <td className="num paid-tax">{formatCents(paidWithTax(item.cost_cents, item.tax_pct, fees))}</td>
+            </>
+          )}
+        </Fragment>
       ))}
       <td className={`num profit-cell ${profit != null && profit < 0 ? 'negative' : ''}`}>{formatCents(profit)}</td>
       <td>
@@ -442,6 +461,45 @@ function MoneyCell({
   );
 }
 
+// Blank means the default rate from Settings; 0 means no tax was charged.
+function TaxCell({
+  item,
+  fees,
+  onSave,
+  onError,
+}: {
+  item: Item;
+  fees: FeeSettings;
+  onSave: (id: number, patch: Record<string, unknown>) => void;
+  onError: (e: unknown) => void;
+}) {
+  const saved = item.tax_pct == null ? '' : String(item.tax_pct);
+  const [value, setValue] = useState(saved);
+  useEffect(() => setValue(saved), [saved]);
+  const parsed = value.trim() === '' ? null : Number(value.trim().replace(/%$/, ''));
+  const invalid = parsed != null && !(Number.isFinite(parsed) && parsed >= 0 && parsed <= 25);
+
+  function commit() {
+    if (invalid) return onError(new Error('Tax must be a percent between 0 and 25, like 6.5. Leave it blank for the default.'));
+    if (parsed === item.tax_pct) return setValue(saved);
+    onSave(item.id, { tax_pct: parsed });
+  }
+
+  return (
+    <input
+      id={`tax_pct-${item.id}`}
+      aria-label="Sales tax percent"
+      inputMode="decimal"
+      placeholder={String(fees.sales_tax_pct)}
+      className={`cell cell-tax ${invalid ? 'invalid' : ''} ${item.tax_pct != null ? 'overridden' : ''}`}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+    />
+  );
+}
+
 function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
@@ -462,7 +520,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={16}>
+      <td colSpan={18}>
         <input
           id="new-item-title"
           aria-label="New item"

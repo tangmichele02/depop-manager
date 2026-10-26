@@ -59,6 +59,7 @@ export interface Item {
   rating: number | null; // 1–5, expected sale potential
   willingness: Willingness | null;
   in_stores: InStores | null;
+  tax_pct: number | null; // sales tax paid when buying; null uses the default
   group_id: number | null;
   description: string | null;
   depop_url: string | null;
@@ -100,10 +101,12 @@ export interface FeeSettings {
   processing_pct: number; // e.g. 3.3
   processing_fixed_cents: number; // e.g. 45
   boost_pct: number; // e.g. 8
+  sales_tax_pct: number; // default tax on purchases, e.g. 6.5 for Washington
 }
 
 export const DEFAULT_FEES: FeeSettings = {
   processing_pct: 3.3,
   processing_fixed_cents: 45,
   boost_pct: 8,
+  sales_tax_pct: 6.5,
 };

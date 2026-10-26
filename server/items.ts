@@ -31,6 +31,7 @@ export const itemInput = z.object({
   rating: score,
   willingness: z.enum(WILLINGNESS).nullable().default(null),
   in_stores: z.enum(IN_STORES).nullable().default(null),
+  tax_pct: z.number().min(0).max(25).nullable().default(null),
   group_id: z.number().int().positive().nullable(),
   description: text,
   depop_url: text,

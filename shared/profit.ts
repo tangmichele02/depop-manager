@@ -6,15 +6,27 @@ export interface SaleInput {
   shipping_cents: number | null;
   shipping_paid_by: ShippingPaidBy;
   boosted: boolean;
+  tax_pct?: number | null;
 }
 
 export interface ProfitBreakdown {
   sold_cents: number;
-  cost_cents: number;
+  cost_cents: number; // what you paid, including sales tax
+  tax_cents: number;
   processing_cents: number;
   boost_cents: number;
   shipping_cost_cents: number;
   profit_cents: number;
+}
+
+// Sales tax on a purchase. A blank per-item rate falls back to the default.
+export function purchaseTax(cost_cents: number | null, tax_pct: number | null | undefined, fees: FeeSettings): number {
+  if (cost_cents == null) return 0;
+  return Math.round((cost_cents * (tax_pct ?? fees.sales_tax_pct)) / 100);
+}
+
+export function paidWithTax(cost_cents: number | null, tax_pct: number | null | undefined, fees: FeeSettings) {
+  return cost_cents == null ? null : cost_cents + purchaseTax(cost_cents, tax_pct, fees);
 }
 
 // US Depop fees: processing is charged on item price plus shipping, a boost fee
@@ -23,7 +35,8 @@ export function profitFor(sale: SaleInput, fees: FeeSettings): ProfitBreakdown |
   if (sale.sold_cents == null) return null;
   const sold = sale.sold_cents;
   const shipping = sale.shipping_cents ?? 0;
-  const cost = sale.cost_cents ?? 0;
+  const tax = purchaseTax(sale.cost_cents, sale.tax_pct, fees);
+  const cost = (sale.cost_cents ?? 0) + tax;
   const processing = Math.round(((sold + shipping) * fees.processing_pct) / 100) + fees.processing_fixed_cents;
   const boost = sale.boosted ? Math.round((sold * fees.boost_pct) / 100) : 0;
   // When the buyer pays, shipping passes through; when the seller pays, it comes out of the sale.
@@ -31,6 +44,7 @@ export function profitFor(sale: SaleInput, fees: FeeSettings): ProfitBreakdown |
   return {
     sold_cents: sold,
     cost_cents: cost,
+    tax_cents: tax,
     processing_cents: processing,
     boost_cents: boost,
     shipping_cost_cents: shippingCost,

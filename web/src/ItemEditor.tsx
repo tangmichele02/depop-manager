@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
-import { formatCents, parseDollars, profitFor } from '../../shared/profit';
+import { formatCents, paidWithTax, parseDollars, profitFor } from '../../shared/profit';
 import {
   DEFAULT_FEES,
   PHOTO_KINDS,
@@ -40,6 +40,7 @@ interface Form {
   rating: number | null;
   willingness: Willingness | null;
   in_stores: InStores | null;
+  tax_pct: string;
   group_id: number | null;
   description: string;
   depop_url: string;
@@ -67,6 +68,7 @@ function toForm(i?: Item): Form {
     rating: i?.rating ?? null,
     willingness: i?.willingness ?? null,
     in_stores: i?.in_stores ?? null,
+    tax_pct: i?.tax_pct == null ? '' : String(i.tax_pct),
     group_id: i?.group_id ?? null,
     description: i?.description ?? '',
     depop_url: i?.depop_url ?? '',
@@ -113,8 +115,13 @@ function toBody(f: Form): { body?: Record<string, unknown>; error?: string } {
     money[field] = v;
   }
   const blank = (s: string) => (s.trim() === '' ? null : s.trim());
+  const tax = f.tax_pct.trim() === '' ? null : Number(f.tax_pct.trim().replace(/%$/, ''));
+  if (tax != null && !(Number.isFinite(tax) && tax >= 0 && tax <= 25)) {
+    return { error: 'Sales tax must be a percent between 0 and 25, like 6.5. Leave it blank for the default.' };
+  }
   return {
     body: {
+      tax_pct: tax,
       title: f.title.trim(),
       brand: blank(f.brand),
       category: blank(f.category),
@@ -178,6 +185,7 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
     const v = parseDollars(form.money[field]);
     return Number.isNaN(v) ? null : v;
   };
+  const taxPct = form.tax_pct.trim() === '' || !Number.isFinite(Number(form.tax_pct)) ? null : Number(form.tax_pct);
   const breakdown = profitFor(
     {
       sold_cents: parsed('sold_cents'),
@@ -185,6 +193,7 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
       shipping_cents: parsed('shipping_cents'),
       shipping_paid_by: form.shipping_paid_by,
       boosted: form.boosted,
+      tax_pct: taxPct,
     },
     fees,
   );
@@ -198,6 +207,7 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
             shipping_cents: parsed('shipping_cents'),
             shipping_paid_by: form.shipping_paid_by,
             boosted: form.boosted,
+            tax_pct: taxPct,
           },
           fees,
         )
@@ -402,6 +412,20 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
               <span className="hint">Sold-out and discontinued pieces can usually be priced higher.</span>
             </label>
             <MoneyInput field="cost_cents" form={form} onChange={setMoney} />
+            <label>
+              Sales tax, percent
+              <input
+                id="tax_pct"
+                inputMode="decimal"
+                value={form.tax_pct}
+                placeholder={`${fees.sales_tax_pct} (default)`}
+                onChange={(e) => set('tax_pct', e.target.value)}
+              />
+              <span className="hint">
+                Leave blank for the default, or enter 0 if you paid no tax.
+                {parsed('cost_cents') != null && ` With tax you paid ${formatCents(paidWithTax(parsed('cost_cents'), taxPct, fees))}.`}
+              </span>
+            </label>
           </fieldset>
 
           <fieldset>
@@ -563,7 +587,7 @@ function ProfitTable({ b }: { b: ReturnType<typeof profitFor> }) {
     <dl className="profit">
       <dt>Sale price</dt>
       <dd>{formatCents(b.sold_cents)}</dd>
-      <dt>What you paid</dt>
+      <dt>What you paid, with {formatCents(b.tax_cents)} tax</dt>
       <dd>{formatCents(-b.cost_cents)}</dd>
       <dt>Processing fee</dt>
       <dd>{formatCents(-b.processing_cents)}</dd>

@@ -68,6 +68,7 @@ const MIGRATIONS: string[] = [
   `,
   `ALTER TABLE items ADD COLUMN willingness TEXT CHECK (willingness IN ('eager', 'happy', 'right_price', 'unsure'));`,
   `ALTER TABLE items ADD COLUMN in_stores TEXT CHECK (in_stores IN ('yes', 'sold_out', 'discontinued', 'vintage'));`,
+  `ALTER TABLE items ADD COLUMN tax_pct REAL CHECK (tax_pct BETWEEN 0 AND 25);`,
 ];
 
 export function openDb(file: string): DB {
