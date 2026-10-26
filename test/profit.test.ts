@@ -19,12 +19,12 @@ describe('profitFor', () => {
   });
 
   it('adds the default sales tax to what you paid', () => {
-    // $6 + 6.5% = $6.39, so profit drops by 39 cents
-    expect(profitFor({ ...base, tax_pct: null }, DEFAULT_FEES)).toMatchObject({ tax_cents: 39, cost_cents: 639, profit_cents: 2386 });
+    // $6 + 10.55% (Seattle) = $6.63, so profit drops by 63 cents
+    expect(profitFor({ ...base, tax_pct: null }, DEFAULT_FEES)).toMatchObject({ tax_cents: 63, cost_cents: 663, profit_cents: 2362 });
   });
 
   it('uses an item’s own tax rate over the default', () => {
-    expect(profitFor({ ...base, tax_pct: 10.55 }, DEFAULT_FEES)?.tax_cents).toBe(63);
+    expect(profitFor({ ...base, tax_pct: 10.3 }, DEFAULT_FEES)?.tax_cents).toBe(62);
     expect(paidWithTax(600, 0, DEFAULT_FEES)).toBe(600);
     expect(paidWithTax(null, null, DEFAULT_FEES)).toBeNull();
   });

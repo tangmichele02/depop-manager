@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { formatCents, paidWithTax, parseDollars, profitFor } from '../../shared/profit';
-import { DEFAULT_FEES, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
+import { DEFAULT_FEES, TAX_PRESETS, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
 
@@ -216,6 +216,13 @@ export function Sheet() {
               <NewRow onAdd={add} />
             </tbody>
           </table>
+          <datalist id="tax-presets">
+            {TAX_PRESETS.map((t) => (
+              <option key={t.label} value={t.pct}>
+                {t.label}
+              </option>
+            ))}
+          </datalist>
         </div>
       )}
       {items !== null && shown.length === 0 && items.length > 0 && <p className="muted">No items match.</p>}
@@ -480,7 +487,7 @@ function TaxCell({
   const invalid = parsed != null && !(Number.isFinite(parsed) && parsed >= 0 && parsed <= 25);
 
   function commit() {
-    if (invalid) return onError(new Error('Tax must be a percent between 0 and 25, like 6.5. Leave it blank for the default.'));
+    if (invalid) return onError(new Error('Tax must be a percent between 0 and 25, like 10.3. Leave it blank for the default.'));
     if (parsed === item.tax_pct) return setValue(saved);
     onSave(item.id, { tax_pct: parsed });
   }
@@ -489,6 +496,7 @@ function TaxCell({
     <input
       id={`tax_pct-${item.id}`}
       aria-label="Sales tax percent"
+      list="tax-presets"
       inputMode="decimal"
       placeholder={String(fees.sales_tax_pct)}
       className={`cell cell-tax ${invalid ? 'invalid' : ''} ${item.tax_pct != null ? 'overridden' : ''}`}

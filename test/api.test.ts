@@ -124,7 +124,7 @@ describe('items', () => {
     expect(tax_pct).toBeNull();
     const csv1 = (await app.inject('/api/export.csv')).body.split('\r\n');
     const cols = csv1[0].split(',');
-    expect(csv1[1].split(',')[cols.indexOf('cost_with_tax')]).toBe('6.39');
+    expect(csv1[1].split(',')[cols.indexOf('cost_with_tax')]).toBe('6.63');
     await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { tax_pct: 0 } });
     const csv2 = (await app.inject('/api/export.csv')).body.split('\r\n');
     expect(csv2[1].split(',')[cols.indexOf('cost_with_tax')]).toBe('6.00');

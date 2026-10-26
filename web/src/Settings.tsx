@@ -152,7 +152,7 @@ function FeesPanel({ toast }: { toast: Toast }) {
     const b = Number(boost);
     const t = Number(tax);
     if (fixedCents == null || Number.isNaN(fixedCents) || !Number.isFinite(p) || !Number.isFinite(b) || tax.trim() === '' || !Number.isFinite(t)) {
-      return toast.error(new Error('Enter numbers for every field, like 3.3, 0.45, 8 and 6.5.'));
+      return toast.error(new Error('Enter numbers for every field, like 3.3, 0.45, 8 and 10.55.'));
     }
     try {
       await api.saveFees({ processing_pct: p, processing_fixed_cents: fixedCents, boost_pct: b, sales_tax_pct: t });
@@ -195,9 +195,9 @@ function FeesPanel({ toast }: { toast: Toast }) {
         </button>
       </form>
       <p className="hint">
-        Sales tax is added to what you paid for every item unless you set a different rate on that item (use 0 for
-        no tax). The default 6.5% is Washington’s state rate; most WA cities add local tax on top, for example Seattle
-        is about 10.55%, so put in your own area’s rate if you know it.
+        Sales tax is added to what you paid for every item unless you set a different rate on that item. The default
+        is Seattle’s 10.55%. In the sheet’s Tax % column you can pick Bellevue (10.3%) or No tax (0%), or type any
+        other rate. Rates are from 2026 tax tables; check them if they change.
       </p>
       <p className="hint">Example: a {formatCents(3200)} sale with {formatCents(749)} shipping pays about {formatCents(Math.round(((3200 + 749) * Number(pct || 0)) / 100) + (parseDollars(fixed) || 0))} in processing.</p>
     </section>

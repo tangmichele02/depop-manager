@@ -97,16 +97,24 @@ export interface PriceChange {
   new_cents: number | null;
 }
 
+// Combined sales tax where most items are bought (2026 rates). Offered as
+// quick picks in the tax column.
+export const TAX_PRESETS = [
+  { label: 'Seattle', pct: 10.55 },
+  { label: 'Bellevue', pct: 10.3 },
+  { label: 'No tax', pct: 0 },
+];
+
 export interface FeeSettings {
   processing_pct: number; // e.g. 3.3
   processing_fixed_cents: number; // e.g. 45
   boost_pct: number; // e.g. 8
-  sales_tax_pct: number; // default tax on purchases, e.g. 6.5 for Washington
+  sales_tax_pct: number; // default tax on purchases, e.g. 10.55 for Seattle
 }
 
 export const DEFAULT_FEES: FeeSettings = {
   processing_pct: 3.3,
   processing_fixed_cents: 45,
   boost_pct: 8,
-  sales_tax_pct: 6.5,
+  sales_tax_pct: 10.55,
 };

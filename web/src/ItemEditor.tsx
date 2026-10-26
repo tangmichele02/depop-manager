@@ -7,6 +7,7 @@ import {
   IN_STORES,
   IN_STORES_LABELS,
   STATUSES,
+  TAX_PRESETS,
   WILLINGNESS,
   WILLINGNESS_LABELS,
   type FeeSettings,
@@ -117,7 +118,7 @@ function toBody(f: Form): { body?: Record<string, unknown>; error?: string } {
   const blank = (s: string) => (s.trim() === '' ? null : s.trim());
   const tax = f.tax_pct.trim() === '' ? null : Number(f.tax_pct.trim().replace(/%$/, ''));
   if (tax != null && !(Number.isFinite(tax) && tax >= 0 && tax <= 25)) {
-    return { error: 'Sales tax must be a percent between 0 and 25, like 6.5. Leave it blank for the default.' };
+    return { error: 'Sales tax must be a percent between 0 and 25, like 10.3. Leave it blank for the default.' };
   }
   return {
     body: {
@@ -416,13 +417,21 @@ export function ItemEditor({ id }: { id: number | 'new' }) {
               Sales tax, percent
               <input
                 id="tax_pct"
+                list="tax-presets-item"
                 inputMode="decimal"
                 value={form.tax_pct}
                 placeholder={`${fees.sales_tax_pct} (default)`}
                 onChange={(e) => set('tax_pct', e.target.value)}
               />
+              <datalist id="tax-presets-item">
+                {TAX_PRESETS.map((t) => (
+                  <option key={t.label} value={t.pct}>
+                    {t.label}
+                  </option>
+                ))}
+              </datalist>
               <span className="hint">
-                Leave blank for the default, or enter 0 if you paid no tax.
+                Leave blank for the default. Bellevue is 10.3, and 0 means no tax.
                 {parsed('cost_cents') != null && ` With tax you paid ${formatCents(paidWithTax(parsed('cost_cents'), taxPct, fees))}.`}
               </span>
             </label>
