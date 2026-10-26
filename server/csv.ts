@@ -13,7 +13,7 @@ export function itemsCsv(items: Item[], groups: Group[], fees: FeeSettings): str
   const groupName = new Map(groups.map((g) => [g.id, g.name]));
   const header = [
     'id', 'title', 'brand', 'category', 'size', 'condition', 'rating', 'willingness', 'group', 'tags', 'status', 'source',
-    'acquired_on', 'in_stores', 'retail', 'cost', 'list_price', 'floor_price', 'sold_price', 'shipping', 'shipping_paid_by',
+    'acquired_on', 'in_stores', 'retail', 'cost', 'list_price', 'willing_to_sell_at', 'sold_price', 'shipping', 'shipping_paid_by',
     'boosted', 'profit', 'listed_on', 'sold_on', 'depop_url', 'notes',
   ];
   const rows = items.map((i) => [

@@ -98,7 +98,7 @@ const MONEY_LABELS: Record<MoneyField, string> = {
   retail_cents: 'Retail price',
   cost_cents: 'What you paid',
   list_cents: 'List price',
-  floor_cents: 'Lowest offer you’ll accept',
+  floor_cents: 'Willing to sell at (lowest offer you’ll take)',
   sold_cents: 'Sold for',
   shipping_cents: 'Shipping',
 };

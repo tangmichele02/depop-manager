@@ -19,6 +19,7 @@ const MONEY_COLUMNS = [
   { key: 'retail_cents', label: 'Retail' },
   { key: 'cost_cents', label: 'Paid' },
   { key: 'list_cents', label: 'Listed at' },
+  { key: 'floor_cents', label: 'Willing to sell at' },
   { key: 'sold_cents', label: 'Sold for' },
 ] as const;
 type MoneyKey = (typeof MONEY_COLUMNS)[number]['key'];
@@ -187,7 +188,7 @@ export function Sheet() {
                 <th>Condition</th>
                 <th>Status</th>
                 <th>Rating</th>
-                <th>Willing to sell</th>
+                <th>Willingness</th>
                 <th>Group</th>
                 <th>In stores?</th>
                 {MONEY_COLUMNS.map((c) => (
@@ -461,7 +462,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={15}>
+      <td colSpan={16}>
         <input
           id="new-item-title"
           aria-label="New item"
