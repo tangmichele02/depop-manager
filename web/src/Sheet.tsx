@@ -189,11 +189,11 @@ export function Sheet() {
                 <th>Condition</th>
                 <th>Status</th>
                 <th>Rating</th>
-                <th>Willingness</th>
                 <th>Group</th>
                 <th>In stores?</th>
                 {MONEY_COLUMNS.map((c) => (
                   <Fragment key={c.key}>
+                    {c.key === 'floor_cents' && <th>Willingness</th>}
                     <th className="num">{c.label}</th>
                     {c.key === 'cost_cents' && (
                       <>
@@ -315,22 +315,6 @@ function Row({
       </td>
       <td>
         <select
-          id={`willingness-${item.id}`}
-          aria-label="Willing to sell"
-          className={`cell willing-${item.willingness ?? 'none'}`}
-          value={item.willingness ?? ''}
-          onChange={(e) => onSave(item.id, { willingness: e.target.value || null })}
-        >
-          <option value="">–</option>
-          {WILLINGNESS.map((w) => (
-            <option key={w} value={w}>
-              {WILLINGNESS_LABELS[w]}
-            </option>
-          ))}
-        </select>
-      </td>
-      <td>
-        <select
           id={`group-${item.id}`}
           aria-label="Group"
           className="cell"
@@ -363,6 +347,26 @@ function Row({
       </td>
       {MONEY_COLUMNS.map((c) => (
         <Fragment key={c.key}>
+          {c.key === 'floor_cents' && (
+            <>
+              <td>
+                <select
+                  id={`willingness-${item.id}`}
+                  aria-label="Willing to sell"
+                  className={`cell willing-${item.willingness ?? 'none'}`}
+                  value={item.willingness ?? ''}
+                  onChange={(e) => onSave(item.id, { willingness: e.target.value || null })}
+                >
+                  <option value="">–</option>
+                  {WILLINGNESS.map((w) => (
+                    <option key={w} value={w}>
+                      {WILLINGNESS_LABELS[w]}
+                    </option>
+                  ))}
+                </select>
+              </td>
+            </>
+          )}
           <td className="num">
             <MoneyCell item={item} field={c.key} label={c.label} onSave={onSave} onError={onError} />
           </td>
