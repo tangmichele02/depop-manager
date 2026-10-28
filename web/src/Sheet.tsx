@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
-import { formatCents, paidWithTax, parseDollars, profitFor } from '../../shared/profit';
+import { formatCents, paidWithTax, parseDollars, payoutAt, profitFor } from '../../shared/profit';
 import { DEFAULT_FEES, TAX_PRESETS, IN_STORES, IN_STORES_LABELS, STATUSES, WILLINGNESS, WILLINGNESS_LABELS, type FeeSettings, type Group, type Item, type Status } from '../../shared/types';
 import { STATUS_LABELS, useToast } from './shared-ui';
 import { NamingGuide, TitleScore } from './NamingGuide';
@@ -246,6 +246,11 @@ export function Sheet() {
                         <th className="num">Paid + tax</th>
                       </>
                     )}
+                    {c.key === 'list_cents' && (
+                      <th className="num" title="What Depop pays you if it sells at the listed price, after processing fees">
+                        You’d get
+                      </th>
+                    )}
                   </Fragment>
                 ))}
                 <th className="num">Profit</th>
@@ -487,6 +492,9 @@ function Row({
               <td className="num paid-tax">{formatCents(paidWithTax(item.cost_cents, item.tax_pct, fees))}</td>
             </>
           )}
+          {c.key === 'list_cents' && (
+            <td className="num payout">{formatCents(payoutAt(item.list_cents, item, fees))}</td>
+          )}
         </Fragment>
       ))}
       <td className={`num profit-cell ${profit != null && profit < 0 ? 'negative' : ''}`}>{formatCents(profit)}</td>
@@ -641,7 +649,7 @@ function NewRow({ onAdd }: { onAdd: (title: string) => Promise<void> }) {
           +
         </span>
       </td>
-      <td colSpan={18}>
+      <td colSpan={19}>
         <input
           id="new-item-title"
           aria-label="New item"

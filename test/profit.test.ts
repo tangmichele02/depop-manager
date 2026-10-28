@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCents, paidWithTax, parseDollars, profitFor } from '../shared/profit';
+import { formatCents, paidWithTax, parseDollars, payoutAt, profitFor } from '../shared/profit';
 import { DEFAULT_FEES } from '../shared/types';
 
 describe('profitFor', () => {
@@ -27,6 +27,13 @@ describe('profitFor', () => {
     expect(profitFor({ ...base, tax_pct: 10.3 }, DEFAULT_FEES)?.tax_cents).toBe(62);
     expect(paidWithTax(600, 0, DEFAULT_FEES)).toBe(600);
     expect(paidWithTax(null, null, DEFAULT_FEES)).toBeNull();
+  });
+
+  it('shows the payout at a price, before what you paid', () => {
+    // $32 with $7.49 buyer-paid shipping: $32 − $1.75 processing = $30.25
+    expect(payoutAt(3200, base, DEFAULT_FEES)).toBe(3025);
+    expect(payoutAt(3200, { ...base, boosted: true }, DEFAULT_FEES)).toBe(3025 - 256);
+    expect(payoutAt(null, base, DEFAULT_FEES)).toBeNull();
   });
 
   it('returns null until the item has a sale price', () => {

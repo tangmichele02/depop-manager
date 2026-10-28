@@ -113,6 +113,7 @@ table.sheet { width: 100%; border-collapse: collapse; }
 .cell-tax::placeholder { color: var(--muted); opacity: 0.8; }
 .cell-tax.overridden { color: var(--warn); font-weight: 600; }
 .paid-tax { color: var(--muted); padding-right: 10px !important; }
+.payout { color: var(--accent); font-weight: 600; padding-right: 10px !important; }
 select.cell { cursor: pointer; width: auto; min-width: 0; padding-right: 0; font-size: 14px; }
 select.cell.status-listed { color: var(--accent); font-weight: 600; }
 select.cell.status-sold { color: var(--accent); font-weight: 700; }

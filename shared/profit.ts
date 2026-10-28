@@ -52,6 +52,18 @@ export function profitFor(sale: SaleInput, fees: FeeSettings): ProfitBreakdown |
   };
 }
 
+// What Depop pays out if the item sells at this price: the price minus
+// processing (and the boost fee, and shipping if you pay it). Cost isn't
+// subtracted; that's what profit is for.
+export function payoutAt(
+  price_cents: number | null,
+  sale: Omit<SaleInput, 'sold_cents' | 'cost_cents' | 'tax_pct'>,
+  fees: FeeSettings,
+): number | null {
+  const p = profitFor({ ...sale, sold_cents: price_cents, cost_cents: 0, tax_pct: 0 }, fees);
+  return p && p.profit_cents;
+}
+
 export function formatCents(cents: number | null | undefined): string {
   if (cents == null) return '';
   const sign = cents < 0 ? '−' : '';
