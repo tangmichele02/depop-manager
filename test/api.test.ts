@@ -141,6 +141,24 @@ describe('items', () => {
     expect((await app.inject({ method: 'PATCH', url: `/api/items/${id}`, payload: { in_stores: 'gone' } })).statusCode).toBe(400);
   });
 
+  it('keeps items in the order you set, with new ones at the bottom', async () => {
+    const make = async (title: string) =>
+      (await app.inject({ method: 'POST', url: '/api/items', payload: { ...ITEM, title } })).json().id as number;
+    const a = await make('First item here');
+    const b = await make('Second item here');
+    const c = await make('Third item here');
+    const ids = (r: { json(): { id: number }[] }) => r.json().map((i) => i.id);
+    expect(ids(await app.inject('/api/items'))).toEqual([a, b, c]);
+
+    const moved = await app.inject({ method: 'PUT', url: '/api/items/order', payload: { ids: [c, a, b] } });
+    expect(ids(moved)).toEqual([c, a, b]);
+    const d = await make('Fourth item here');
+    expect(ids(await app.inject('/api/items'))).toEqual([c, a, b, d]);
+
+    const partial = await app.inject({ method: 'PUT', url: '/api/items/order', payload: { ids: [a, b] } });
+    expect(partial.statusCode).toBe(400);
+  });
+
   it('returns 404 for a missing item', async () => {
     expect((await app.inject('/api/items/999')).statusCode).toBe(404);
   });

@@ -102,7 +102,7 @@ export function listItems(db: DB, filter: ItemFilter = {}): Item[] {
     where.push(`(i.title LIKE @q OR i.brand LIKE @q OR i.tags LIKE @q OR i.source LIKE @q)`);
     params.q = `%${filter.q}%`;
   }
-  const sql = `${SELECT_ITEM} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY i.updated_at DESC, i.id DESC`;
+  const sql = `${SELECT_ITEM} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY i.position, i.id`;
   return (db.prepare(sql).all(params) as Row[]).map(fromRow);
 }
 
@@ -114,10 +114,25 @@ export function getItem(db: DB, id: number): Item | undefined {
 export function createItem(db: DB, input: ItemInput): Item {
   const params = toParams(stampDates(input));
   const cols = Object.keys(params);
+  // New items go to the bottom of the sheet.
   const info = db
-    .prepare(`INSERT INTO items (${cols.join(', ')}) VALUES (${cols.map((c) => '@' + c).join(', ')})`)
+    .prepare(
+      `INSERT INTO items (${cols.join(', ')}, position)
+       VALUES (${cols.map((c) => '@' + c).join(', ')}, (SELECT COALESCE(MAX(position), 0) + 1 FROM items))`,
+    )
     .run(params);
   return getItem(db, Number(info.lastInsertRowid))!;
+}
+
+// Sets the sheet order. The list must name every item exactly once.
+export function reorderItems(db: DB, ids: number[]): boolean {
+  const all = (db.prepare(`SELECT id FROM items`).all() as { id: number }[]).map((r) => r.id);
+  if (ids.length !== all.length || new Set(ids).size !== ids.length || !all.every((id) => ids.includes(id))) {
+    return false;
+  }
+  const set = db.prepare(`UPDATE items SET position = ? WHERE id = ?`);
+  db.transaction(() => ids.forEach((id, i) => set.run(i + 1, id)))();
+  return true;
 }
 
 export function updateItem(db: DB, id: number, patch: Partial<ItemInput>): Item | undefined {

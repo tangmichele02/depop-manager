@@ -32,6 +32,7 @@ export const api = {
   createItem: (body: unknown) => request<Item>('POST', '/api/items', body),
   updateItem: (id: number, body: unknown) => request<Item>('PATCH', `/api/items/${id}`, body),
   deleteItem: (id: number) => request<void>('DELETE', `/api/items/${id}`),
+  reorderItems: (ids: number[]) => request<Item[]>('PUT', '/api/items/order', { ids }),
 
   uploadPhotos: (itemId: number, files: FileList | File[]) => {
     const form = new FormData();

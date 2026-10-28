@@ -215,8 +215,23 @@ fieldset label .button { justify-self: start; margin-top: 4px; }
 /* Keep the photo and item name in view when the sheet scrolls sideways. */
 .sheet th:nth-child(-n + 2), .sheet td:nth-child(-n + 2) { position: sticky; background: var(--surface); z-index: 1; }
 .sheet th:nth-child(1), .sheet td:nth-child(1) { left: 0; }
-.sheet th:nth-child(2), .sheet td:nth-child(2) { left: 48px; box-shadow: 1px 0 0 var(--line); }
-.sheet thead th:nth-child(-n + 2) { z-index: 2; }
+.sheet th:nth-child(2), .sheet td:nth-child(2) { left: 76px; box-shadow: 1px 0 0 var(--line); }
+.sheet thead th:nth-child(-n + 2) { z-index: 3; }
 .sheet tbody tr:hover td:nth-child(-n + 2) { background: var(--accent-soft); }
 .sheet .new-row td:nth-child(-n + 2) { background: var(--bg); }
-.sheet th:nth-child(1), .sheet td:nth-child(1) { width: 48px; min-width: 48px; max-width: 48px; }
+.sheet th:nth-child(1), .sheet td:nth-child(1) { width: 76px; min-width: 76px; max-width: 76px; }
+
+/* The sheet fills the window below the top bar and scrolls inside itself,
+   so the column headers stay visible however long the list gets. */
+.sheet-page { display: flex; flex-direction: column; gap: 16px; height: calc(100dvh - 66px - 48px); min-width: 0; }
+.sheet-page > .table-wrap { flex: 1 1 auto; min-height: 260px; overflow: auto; }
+.sheet thead th { z-index: 2; box-shadow: 0 1px 0 var(--line); }
+.thumb-cell { display: flex; align-items: center; gap: 4px; }
+.drag-handle {
+  font: inherit; font-size: 14px; letter-spacing: -2px; line-height: 1; padding: 6px 3px; border: none; border-radius: 4px;
+  background: transparent; color: var(--muted); cursor: grab;
+}
+.drag-handle:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+.drag-handle:disabled { cursor: default; opacity: 0.3; }
+.drag-handle:active { cursor: grabbing; }
+.sheet tr.dragging td { background: var(--accent-soft) !important; opacity: 0.7; }

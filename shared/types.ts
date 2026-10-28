@@ -60,6 +60,7 @@ export interface Item {
   willingness: Willingness | null;
   in_stores: InStores | null;
   tax_pct: number | null; // sales tax paid when buying; null uses the default
+  position: number; // row order in the sheet
   group_id: number | null;
   description: string | null;
   depop_url: string | null;

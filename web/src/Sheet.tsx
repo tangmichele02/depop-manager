@@ -85,6 +85,7 @@ export function Sheet() {
   const [fees, setFees] = useState<FeeSettings>(DEFAULT_FEES);
   const [status, setStatus] = useState<Status | ''>('');
   const [q, setQ] = useState('');
+  const [dragId, setDragId] = useState<number | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -117,12 +118,54 @@ export function Sheet() {
     try {
       const created = await api.createItem({ ...blankItem(title), status: status || 'sourced' });
       setItems((all) => [...(all ?? []), created]);
+      // Keep the blank row in view as the list grows.
+      requestAnimationFrame(() => document.getElementById('new-item-title')?.scrollIntoView({ block: 'nearest' }));
     } catch (e) {
       toast.error(e);
     }
   }
 
-  // Oldest first, so rows stay put while you edit them.
+  // Rows can only be reordered when every item is showing, so the order is unambiguous.
+  const canReorder = !status && !q.trim();
+
+  // Moves one row to sit where another row is, without saving yet.
+  function moveLocally(id: number, targetId: number) {
+    if (id === targetId) return;
+    setItems((all) => {
+      if (!all) return all;
+      const ordered = [...all].sort((a, b) => a.position - b.position);
+      const from = ordered.findIndex((i) => i.id === id);
+      const to = ordered.findIndex((i) => i.id === targetId);
+      const [moved] = ordered.splice(from, 1);
+      ordered.splice(to, 0, moved);
+      return ordered.map((i, n) => ({ ...i, position: n + 1 }));
+    });
+  }
+
+  async function saveOrder() {
+    if (!items) return;
+    const ids = [...items].sort((a, b) => a.position - b.position).map((i) => i.id);
+    try {
+      setItems(await api.reorderItems(ids));
+    } catch (e) {
+      toast.error(e);
+      api.items().then(setItems).catch(() => {});
+    }
+  }
+
+  function moveBy(id: number, delta: number) {
+    const ordered = [...(items ?? [])].sort((a, b) => a.position - b.position);
+    const index = ordered.findIndex((i) => i.id === id);
+    const target = ordered[index + delta];
+    if (!target) return;
+    const ids = ordered.map((i) => i.id);
+    ids.splice(index, 1);
+    ids.splice(index + delta, 0, id);
+    setItems(ordered.map((i) => ({ ...i, position: ids.indexOf(i.id) + 1 })));
+    api.reorderItems(ids).then(setItems).catch(toast.error);
+  }
+
+  // In the order you've arranged them; new items go to the bottom.
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return (items ?? [])
@@ -131,7 +174,7 @@ export function Sheet() {
           (!status || i.status === status) &&
           (!needle || [i.title, i.brand, i.size, i.notes].some((s) => s?.toLowerCase().includes(needle))),
       )
-      .sort((a, b) => a.id - b.id);
+      .sort((a, b) => a.position - b.position);
   }, [items, status, q]);
 
   const summary = useMemo(() => {
@@ -146,7 +189,7 @@ export function Sheet() {
   }, [items, fees]);
 
   return (
-    <div className="stack">
+    <div className="sheet-page">
       <div className="sheet-head">
         <p className="sheet-summary">
           <b>{summary.total}</b> items · <b>{summary.stock}</b> in stock · <b>{summary.sold}</b> sold ·{' '}
@@ -181,7 +224,7 @@ export function Sheet() {
           <table className="sheet">
             <thead>
               <tr>
-                <th aria-label="Photo" />
+                <th aria-label="Move and photo" />
                 <th>Item</th>
                 {TEXT_COLUMNS.map((c) => (
                   <th key={c.key}>{c.label}</th>
@@ -211,7 +254,23 @@ export function Sheet() {
             </thead>
             <tbody>
               {shown.map((i) => (
-                <Row key={i.id} item={i} groups={groups} fees={fees} onSave={save} onError={toast.error} />
+                <Row
+                  key={i.id}
+                  item={i}
+                  groups={groups}
+                  fees={fees}
+                  onSave={save}
+                  onError={toast.error}
+                  canReorder={canReorder}
+                  dragging={dragId === i.id}
+                  onDragStart={() => setDragId(i.id)}
+                  onDragOver={() => dragId != null && moveLocally(dragId, i.id)}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    saveOrder();
+                  }}
+                  onMove={(delta) => moveBy(i.id, delta)}
+                />
               ))}
               <NewRow onAdd={add} />
             </tbody>
@@ -227,7 +286,7 @@ export function Sheet() {
       )}
       {items !== null && shown.length === 0 && items.length > 0 && <p className="muted">No items match.</p>}
       <p className="hint">
-        Changes save when you leave a cell. "Add item" jumps to the blank row at the bottom. Click a photo square to open the full item page for photos, dates, shipping and the full profit breakdown.
+        Changes save when you leave a cell. Drag a row by its ⋮⋮ handle to reorder it, or focus the handle and use the arrow keys. "Add item" jumps to the blank row at the bottom. Click a photo square to open the full item page for photos, dates, shipping and the full profit breakdown.
       </p>
       {toast.node}
     </div>
@@ -240,20 +299,70 @@ function Row({
   fees,
   onSave,
   onError,
+  canReorder,
+  dragging,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onMove,
 }: {
   item: Item;
   groups: Group[];
   fees: FeeSettings;
   onSave: (id: number, patch: Record<string, unknown>) => void;
   onError: (e: unknown) => void;
+  canReorder: boolean;
+  dragging: boolean;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDragEnd: () => void;
+  onMove: (delta: number) => void;
 }) {
   const profit = profitFor(item, fees)?.profit_cents ?? null;
+  // The row only becomes draggable while the handle is held, so text in the cells stays selectable.
+  const [armed, setArmed] = useState(false);
   return (
-    <tr>
+    <tr
+      className={dragging ? 'dragging' : ''}
+      draggable={armed}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(item.id));
+        onDragStart();
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragOver();
+      }}
+      onDrop={(e) => e.preventDefault()}
+      onDragEnd={() => {
+        setArmed(false);
+        onDragEnd();
+      }}
+    >
       <td className="thumb">
-        <a href={`#/item/${item.id}`} aria-label={`Open ${item.title}`} title="Open full item page">
-          {item.cover_url ? <img src={item.cover_url} alt="" loading="lazy" /> : <span className="no-photo" />}
-        </a>
+        <div className="thumb-cell">
+          <button
+            type="button"
+            className="drag-handle"
+            disabled={!canReorder}
+            aria-label={`Move ${item.title}`}
+            title={canReorder ? 'Drag to reorder, or use the arrow keys' : 'Clear search and filters to reorder'}
+            onMouseDown={() => canReorder && setArmed(true)}
+            onMouseUp={() => setArmed(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                onMove(e.key === 'ArrowUp' ? -1 : 1);
+              }
+            }}
+          >
+            ⋮⋮
+          </button>
+          <a href={`#/item/${item.id}`} aria-label={`Open ${item.title}`} title="Open full item page">
+            {item.cover_url ? <img src={item.cover_url} alt="" loading="lazy" /> : <span className="no-photo" />}
+          </a>
+        </div>
       </td>
       <td>
         <div className="title-cell">

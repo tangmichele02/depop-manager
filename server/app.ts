@@ -7,7 +7,7 @@ import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import { z } from 'zod';
 import { openDb } from './db.js';
-import { createItem, deleteItem, getItem, itemInput, itemPatch, listItems, priceHistory, updateItem } from './items.js';
+import { createItem, deleteItem, reorderItems, getItem, itemInput, itemPatch, listItems, priceHistory, updateItem } from './items.js';
 import { getFees, setFees } from './settings.js';
 import { itemsCsv } from './csv.js';
 import { backup } from './backup.js';
@@ -84,6 +84,14 @@ export function buildApp(opts: AppOptions) {
   app.post('/api/items', async (req, reply) => {
     const item = createItem(db, itemInput.parse(req.body));
     return reply.code(201).send(item);
+  });
+
+  app.put('/api/items/order', async (req) => {
+    const { ids } = z.object({ ids: z.array(z.number().int()) }).parse(req.body);
+    if (!reorderItems(db, ids)) {
+      throw Object.assign(new Error('The order must list every item exactly once'), { statusCode: 400 });
+    }
+    return listItems(db);
   });
 
   app.get('/api/items/:id', async (req) => {
